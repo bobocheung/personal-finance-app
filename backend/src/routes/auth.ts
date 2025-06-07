@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/User';
 import { auth, AuthenticatedRequest } from '../middleware/auth';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -27,7 +28,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // 生成 JWT
     const token = jwt.sign(
-      { _id: user._id.toHexString() },
+      { _id: (user._id as mongoose.Types.ObjectId).toHexString() },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
@@ -65,7 +66,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // 生成 JWT
     const token = jwt.sign(
-      { _id: user._id.toHexString() },
+      { _id: (user._id as mongoose.Types.ObjectId).toHexString() },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
@@ -87,11 +88,14 @@ router.post('/login', async (req: Request, res: Response) => {
 // 獲取當前用戶信息
 router.get('/me', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    if (!req.user) {
+      return res.status(401).json({ message: '未經認證的使用者' });
+    }
     res.json({
       user: {
-        id: req.user?._id?.toHexString(),
-        email: req.user?.email,
-        name: req.user?.name,
+        id: req.user._id.toHexString(),
+        email: req.user.email,
+        name: req.user.name,
       },
     });
   } catch (error) {
