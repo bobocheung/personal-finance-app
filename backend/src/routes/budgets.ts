@@ -10,7 +10,25 @@ router.get('/', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const budgets: IBudget[] = await Budget.find({ user: req.user?._id })
       .sort({ startDate: -1 });
-    res.json(budgets);
+
+    // 計算每個預算的已使用金額
+    const budgetsWithSpent = await Promise.all(budgets.map(async (budget) => {
+      // Explicitly cast to any to resolve the toObject() type error
+      const budgetObject = (budget as any).toObject();
+      const transactions: ITransaction[] = await Transaction.find({
+        user: req.user?._id,
+        category: budget.category,
+        date: {
+          $gte: budget.startDate,
+          $lte: budget.endDate,
+        },
+        type: 'expense',
+      });
+      const totalSpent = transactions.reduce((sum: number, transaction: ITransaction) => sum + transaction.amount, 0);
+      return { ...budgetObject, spent: totalSpent };
+    }));
+
+    res.json(budgetsWithSpent);
   } catch (error) {
     console.error('獲取預算失敗:', error);
     res.status(500).json({ message: '獲取預算失敗' });
