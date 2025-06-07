@@ -36,7 +36,7 @@ router.post('/register', async (req: Request, res: Response) => {
     res.status(201).json({
       token,
       user: {
-        id: user._id,
+        id: user._id.toHexString(),
         email: user.email,
         name: user.name,
       },
@@ -74,7 +74,7 @@ router.post('/login', async (req: Request, res: Response) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user._id.toHexString(),
         email: user.email,
         name: user.name,
       },
@@ -93,7 +93,7 @@ router.get('/me', auth, async (req: AuthenticatedRequest, res: Response) => {
     }
     res.json({
       user: {
-        id: req.user._id.toHexString(),
+        id: (req.user._id as mongoose.Types.ObjectId).toHexString(),
         email: req.user.email,
         name: req.user.name,
       },
