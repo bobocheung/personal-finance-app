@@ -27,7 +27,7 @@ router.post('/register', async (req: Request, res: Response) => {
 
     // 生成 JWT
     const token = jwt.sign(
-      { _id: user._id.toString() },
+      { _id: user._id.toHexString() },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
@@ -41,6 +41,7 @@ router.post('/register', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.error('註冊失敗:', error);
     res.status(500).json({ message: '註冊失敗' });
   }
 });
@@ -64,7 +65,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     // 生成 JWT
     const token = jwt.sign(
-      { _id: user._id.toString() },
+      { _id: user._id.toHexString() },
       process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
@@ -78,6 +79,7 @@ router.post('/login', async (req: Request, res: Response) => {
       },
     });
   } catch (error) {
+    console.error('登入失敗:', error);
     res.status(500).json({ message: '登入失敗' });
   }
 });
@@ -87,12 +89,13 @@ router.get('/me', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     res.json({
       user: {
-        id: req.user?._id,
+        id: req.user?._id?.toHexString(),
         email: req.user?.email,
         name: req.user?.name,
       },
     });
   } catch (error) {
+    console.error('獲取用戶信息失敗:', error);
     res.status(500).json({ message: '獲取用戶信息失敗' });
   }
 });
