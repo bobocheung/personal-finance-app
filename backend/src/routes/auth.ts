@@ -1,12 +1,12 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
-import { auth } from '../middleware/auth';
+import User, { IUser } from '../models/User';
+import { auth, AuthenticatedRequest } from '../middleware/auth';
 
 const router = express.Router();
 
 // 註冊
-router.post('/register', async (req, res) => {
+router.post('/register', async (req: Request, res: Response) => {
   try {
     const { email, password, name } = req.body;
 
@@ -28,7 +28,7 @@ router.post('/register', async (req, res) => {
     // 生成 JWT
     const token = jwt.sign(
       { _id: user._id.toString() },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
 
@@ -46,7 +46,7 @@ router.post('/register', async (req, res) => {
 });
 
 // 登入
-router.post('/login', async (req, res) => {
+router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     // 生成 JWT
     const token = jwt.sign(
       { _id: user._id.toString() },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     );
 
@@ -83,13 +83,13 @@ router.post('/login', async (req, res) => {
 });
 
 // 獲取當前用戶信息
-router.get('/me', auth, async (req: any, res) => {
+router.get('/me', auth, async (req: AuthenticatedRequest, res: Response) => {
   try {
     res.json({
       user: {
-        id: req.user._id,
-        email: req.user.email,
-        name: req.user.name,
+        id: req.user?._id,
+        email: req.user?.email,
+        name: req.user?.name,
       },
     });
   } catch (error) {

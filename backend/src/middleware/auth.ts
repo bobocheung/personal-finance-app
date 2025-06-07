@@ -1,29 +1,34 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from '../models/User';
+import User, { IUser } from '../models/User';
 
-interface AuthRequest extends Request {
-  user?: any;
+// 擴展 Request 型別以包含 user 屬性
+export interface AuthenticatedRequest extends Request {
+  user?: IUser;
 }
 
-export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const auth = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.get('Authorization')?.replace('Bearer ', '');
 
     if (!token) {
-      throw new Error();
+      throw new Error('Authorization token not found.');
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
-    const user = await User.findOne({ _id: (decoded as any)._id });
+    // 明確轉換解碼後的 payload
+    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { _id: string };
+
+    const user = await User.findById(decoded._id);
 
     if (!user) {
-      throw new Error();
+      throw new Error('User not found.');
     }
 
     req.user = user;
     next();
   } catch (error) {
-    res.status(401).json({ message: '請先登入' });
+    // 開發時印出實際錯誤以便調試
+    console.error('Authentication Error:', error);
+    res.status(401).json({ message: '認證失敗，請重新登入。' });
   }
 }; 
