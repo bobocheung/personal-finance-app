@@ -7,7 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 // 路由導入
 import authRoutes from './routes/auth';
 import transactionRoutes from './routes/transactions';
-import budgetRoutes from './routes/budgets';
+// import budgetRoutes from './routes/budgets'; // 移除 budgetRoutes 導入
 
 dotenv.config();
 
@@ -20,7 +20,7 @@ app.use(express.json());
 // 路由
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
-app.use('/api/budgets', budgetRoutes);
+// app.use('/api/budgets', budgetRoutes); // 移除預算路由使用
 
 // 數據庫連接
 const MONGODB_URI = process.env.MONGODB_URI as string || 'mongodb://localhost:27017/finance-tracker';
